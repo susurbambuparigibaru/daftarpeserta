@@ -125,7 +125,7 @@
             display: none;
             text-align: left;
             animation: fadeIn 0.3s ease-in-out;
-            max-height: 280px;
+            max-height: 320px;
             overflow-y: auto;
         }
 
@@ -155,15 +155,15 @@
         }
 
         .result h3 {
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
             font-size: 18px;
         }
 
         .item-nama {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px dashed #c8e6c9;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         .item-nama:last-child {
@@ -186,8 +186,8 @@
 </div>
 
 <script>
-    // URL Google Apps Script Web App resmi terbaru milik Anda
-    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxaswsrIcM8T2__OsHnYORdhTYdq8Cg6mcbLJTEUCHBGkK_fxFlr-wJ5uETfsCF6vEd/exec'; 
+    // URL Google Apps Script Web App resmi milik Anda
+    const appsScriptUrl = 'https://google.com'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -198,7 +198,6 @@
             return;
         }
 
-        // Batasi minimal pencarian harus 3 karakter agar tidak sensitif jika tidak sengaja ketik 1 huruf
         if (input.length < 3) {
             alert("Mohon masukkan minimal 3 karakter untuk melakukan pencarian!");
             return;
@@ -211,26 +210,26 @@
         try {
             const response = await fetch(appsScriptUrl);
             if (!response.ok) throw new Error();
-            const listNama = await response.json();
+            const listPeserta = await response.json();
             
-            // Mengumpulkan semua nama yang cocok (menangani nama depan/belakang yang sama)
+            // Mengumpulkan semua peserta yang namanya cocok
             let hasilPencarian = [];
-            for (let i = 0; i < listNama.length; i++) {
-                if (listNama[i] && listNama[i].toLowerCase().includes(input)) {
-                    hasilPencarian.push(listNama[i]);
+            for (let i = 0; i < listPeserta.length; i++) {
+                if (listPeserta[i].nama && listPeserta[i].nama.toLowerCase().includes(input)) {
+                    hasilPencarian.push(listPeserta[i]);
                 }
             }
 
             if (hasilPencarian.length > 0) {
                 boxHasil.className = "result terdaftar";
                 
-                // Menyusun daftar list nama jika hasil pencarian lebih dari satu
                 let htmlKonten = `<h3>🎉 ${hasilPencarian.length} Nama Ditemukan!</h3>`;
-                hasilPencarian.forEach(nama => {
+                hasilPencarian.forEach(peserta => {
                     htmlKonten += `
                         <div class="item-nama">
-                            <strong>Nama Lengkap:</strong> ${nama}<br>
-                            <span style="color: #166534; font-size: 12px;">Status Kepesertaan: Terverifikasi ✅</span>
+                            <strong>Nama Lengkap:</strong> ${peserta.nama}<br>
+                            <strong>Domisili:</strong> ${peserta.domisili}<br>
+                            <span style="color: #166534; font-size: 12px; font-weight: bold;">Status Kepesertaan: Terverifikasi ✅</span>
                         </div>
                     `;
                 });
@@ -249,12 +248,11 @@
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
                 <h3>⚠️ Koneksi Sinkronisasi Gagal</h3>
-                <p>Terjadi kendala saat mengambil data. Pastikan status hak akses Web App di Google Sheets Anda sudah disetel ke <strong>'Anyone'</strong> (Siapa saja).</p>
+                <p>Terjadi kendala saat mengambil data. Harap muat ulang halaman atau periksa kembali status deployment Web App Anda.</p>
             `;
         }
     }
     
-    // Fitur klik tombol enter di keyboard
     document.getElementById("inputNama").addEventListener("keypress", function(event) {
         if (event.key === "Enter") { cariNama(); }
     });
