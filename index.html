@@ -179,8 +179,8 @@
 </div>
 
 <script>
-    // Konfigurasi ID Dokumen Google Sheets Anda (Sudah Sesuai)
-    const mySheetId = '1472663075'; 
+    // Konfigurasi ID Spreadsheet Anda yang sudah diverifikasi dari link
+    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -193,10 +193,10 @@
 
         boxHasil.style.display = "block";
         boxHasil.className = "result loading";
-        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran...</p>";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Jalur ekspor teks mentah (TSV) berbasis tabulator agar kebal dari koma di kolom alamat
-        const url = `https://google.com{mySheetId}/export?format=tsv`;
+        // Jalur ekspor TSV publik menggunakan parameter pub?output=tsv
+        const url = `https://google.com{mySheetId}/pub?output=tsv`;
 
         try {
             const response = await fetch(url);
@@ -206,18 +206,17 @@
             const baris = textData.split("\n");
             let namaDitemukan = null;
 
-            // Memindai baris data (Melewati baris judul indeks 0)
-            for (let i = 1; i < baris.length; i++) {
+            // Memindai baris data (Mulai dari baris ke-3 / indeks 2 untuk melewati merged cell ungu dan judul kolom)
+            for (let i = 2; i < baris.length; i++) {
                 if (!baris[i]) continue;
                 
-                // Pisahkan kolom menggunakan pembatas karakter tab (\t)
+                // Memisahkan data per kolom menggunakan karakter Tab (\t)
                 const kolom = baris[i].split("\t");
                 
-                // KUNCI UTAMA: Hanya membaca Kolom B (Indeks ke-1 di sistem komputer) yang berisi NAMA LENGKAP
+                // Pada spreadsheet Anda, Kolom B (indeks 1) adalah NAMA LENGKAP
                 if (kolom && kolom[1]) {
-                    const namaPeserta = kolom[1].replace(/"/g, '').trim(); // Membersihkan sisa ornamen kutip teks CSV
+                    const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
-                    // Mencocokkan input pencarian peserta dengan data di kolom nama saja
                     if (namaPeserta.toLowerCase().includes(input)) {
                         namaDitemukan = namaPeserta;
                         break;
@@ -244,8 +243,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
-                <p>Tidak dapat membaca data pendaftaran. Pastikan pengaturan <strong>Anyone with the link (Siapa saja yang memiliki link)</strong> di Google Sheets Anda tetap aktif.</p>
+                <h3>⚠️ Akses Sinkronisasi Gagal</h3>
+                <p>Pastikan menu <strong>File > Share > Publish to web (Publikasikan ke web)</strong> di Google Sheets Anda sudah aktif agar sistem diizinkan membaca data.</p>
             `;
         }
     }
