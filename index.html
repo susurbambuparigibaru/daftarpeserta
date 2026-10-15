@@ -179,7 +179,7 @@
 </div>
 
 <script>
-    // DI SINI KITA MENGGUNAKAN ID UTUH DARI LINK PUBLISH BARU ANDA
+    // Menggunakan ID Enkripsi Publikasi Google Sheets Anda yang aktif
     const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvlSnimph2YJQ7QGsuvqI2NNIeOv9_Ku5lyJAQ2Ktt3dCol8PnlauwPgxXnMuE'; 
 
     async function cariNama() {
@@ -195,8 +195,8 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Memanggil data TSV langsung dari server CDN Google dengan ID Publikasi Utama
-        const url = `https://google.com{myPubId}/pub?output=tsv`;
+        // Trik Tambahan: Menyertakan nomor gid lembar kerja dan penangkal riwayat cache browser (&t=)
+        const url = `https://google.com{myPubId}/pub?gid=1472663075&single=true&output=tsv&t=${new Date().getTime()}`;
 
         try {
             const response = await fetch(url);
@@ -206,14 +206,13 @@
             const baris = textData.split("\n");
             let namaDitemukan = null;
 
-            // Scanning baris data dimulai dari indeks ke-2 (melewati baris merged cell ungu dan baris judul kolom)
+            // Scanning data dimulai dari baris indeks ke-2 (melewati judul dan merged cell ungu)
             for (let i = 2; i < baris.length; i++) {
                 if (!baris[i]) continue;
                 
-                // Pisahkan data menggunakan pemisah Tabular (\t) bawaan Google TSV
                 const kolom = baris[i].split("\t");
                 
-                // Pada lembar kerja Anda, Kolom B (Indeks Array ke-1) adalah NAMA LENGKAP
+                // Kolom B adalah indeks array ke-1 (NAMA LENGKAP)
                 if (kolom && kolom[1]) {
                     const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
@@ -243,8 +242,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Kegagalan Sinkronisasi Data</h3>
-                <p>Gagal mengunduh basis data publik Google. Pastikan status dokumen di menu File > Share > Publish to web tetap aktif.</p>
+                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
+                <p>Server web sedang menyelaraskan data baru dari Google Sheets. Mohon tunggu 1-2 menit lalu muat ulang halaman web ini.</p>
             `;
         }
     }
