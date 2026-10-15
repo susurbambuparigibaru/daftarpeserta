@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Pendaftaran - Susur Bambu Parigi Baru</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            /* 1. IMPORT BACKGROUND GAMBAR BANNER */
+            background-image: url('background-event.png'); 
+            
+            /* 2. PENGATURAN STRUKTUR BACKGROUND */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Lapisan transparan gelap agar gambar tidak mendominasi teks */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 1;
+        }
+
+        /* KOTAK PENCARIAN DENGAN AKSEN GRADASI HIJAU BAMBU */
+        .container {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 35px 30px;
+            border-radius: 20px;
+            /* Efek bayangan halus berwarna hijau tua transparan agar serasi dengan bambu */
+            box-shadow: 0 12px 40px rgba(27, 94, 32, 0.3);
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            /* Garis pembatas tipis berwarna hijau daun */
+            border: 2px solid rgba(165, 214, 167, 0.5);
+        }
+
+        /* DEKORASI ORNAMEN DAUN / GARIS ATAS */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #1b5e20, #4ade80, #facc15);
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
+
+        h2 {
+            color: #1b5e20; /* Hijau Tua Khas Hutan/Bambu */
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: #4b5563;
+            font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 18px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid #c8e6c9; /* Hijau muda pudar */
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background-color: #f9fbf9;
+        }
+
+        input[type="text"]:focus {
+            border-color: #1b5e20;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.15);
+        }
+
+        /* TOMBOL KUNING EMAS/ORANYE MENIRU TULISAN "SUSUR BAMBU" */
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #facc15, #eab308); /* Gradasi Kuning Emas */
+            color: #1e293b; /* Teks Gelap Kontras */
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #fde047, #ca8a04);
+            box-shadow: 0 6px 16px rgba(234, 179, 8, 0.4);
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 10px;
+            display: none;
+            text-align: left;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .terdaftar {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #166534;
+        }
+
+        .tidak-terdaftar {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-left: 5px solid #991b1b;
+        }
+
+        .result h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+
+        .result p {
+            margin: 6px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Cek Pendaftaran</h2>
+    <p class="subtitle">Susur Bambu Parigi Baru Volume 2</p>
+    
+    <div class="search-box">
+        <input type="text" id="inputNama" placeholder="Ketik nama lengkap Anda...">
+    </div>
+    <button onclick="cariNama()">Periksa Kepesertaan</button>
+
+    <div id="boxHasil" class="result"></div>
+</div>
+
+<script>
+    // Konfigurasi Google Sheets Anda
+    const sheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- Ganti dengan ID Spreadsheet Google Form Anda
+    const sheetName = 'Form Responses 1'; 
+
+    async function cariNama() {
+        const input = document.getElementById("inputNama").value.trim().toLowerCase();
+        const boxHasil = document.getElementById("boxHasil");
+        
+        if (input === "") {
+            alert("Silakan ketik nama terlebih dahulu!");
+            return;
+        }
+
+        boxHasil.style.display = "block";
+        boxHasil.className = "result loading";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang mencocokkan dengan basis data pendaftaran.</p>";
+
+        const url = `https://google.com{sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+        try {
+            const response = await fetch(url);
+            const textData = await response.text();
+            
+            const baris = textData.split("\n").map(row => {
+                return row.split(",").map(cell => cell.replace(/^"(.*)"\$/, '\$1'));
+            });
+
+            let dataDitemukan = null;
+
+            for (let i = 1; i < baris.length; i++) {
+                const kolom = baris[i];
+                // Asumsi pencarian pada Kolom Indeks 1 (Kolom B di Sheets)
+                if (kolom && kolom.toLowerCase().includes(input)) {
+                    dataDitemukan = {
+                        waktu: kolom,
+                        nama: kolom,
+                        info: kolom || "-" 
+                    };
+                    break; 
+                }
+            }
+
+            if (dataDitemukan) {
+                boxHasil.className = "result terdaftar";
+                boxHasil.innerHTML = `
+                    <h3>🎉 Nama Terdaftar!</h3>
+                    <p><strong>Nama Lengkap:</strong> ${dataDitemukan.nama}</p>
+                    <p><strong>Waktu Masuk:</strong> ${dataDitemukan.waktu}</p>
+                    <p><strong>Status:</strong> Terverifikasi sebagai Peserta</p>
+                `;
+            } else {
+                boxHasil.className = "result tidak-terdaftar";
+                boxHasil.innerHTML = `
+                    <h3>❌ Nama Tidak Ditemukan</h3>
+                    <p>Nama tidak terdata atau ejaan salah. Pastikan nama sesuai dengan yang diisi di Google Form.</p>
+                `;
+            }
+
+        } catch (error) {
+            console.error(error);
+            boxHasil.className = "result tidak-terdaftar";
+            boxHasil.innerHTML = `
+                <h3>⚠️ Terjadi Kesalahan</h3>
+                <p>Gagal menghubungi server database. Periksa izin akses file Google Sheets Anda.</p>
+            `;
+        }
+    }
+    
+    document.getElementById("inputNama").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { cariNama(); }
+    });
+</script>
+
+</body>
+</html>
