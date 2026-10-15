@@ -179,7 +179,7 @@
 </div>
 
 <script>
-    // Menggunakan ID Enkripsi Publikasi Google Sheets Anda yang aktif
+    // ID Publikasi Dokumen Terverifikasi Aktif
     const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvlSnimph2YJQ7QGsuvqI2NNIeOv9_Ku5lyJAQ2Ktt3dCol8PnlauwPgxXnMuE'; 
 
     async function cariNama() {
@@ -193,9 +193,9 @@
 
         boxHasil.style.display = "block";
         boxHasil.className = "result loading";
-        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang mencocokkan nama dengan basis data...</p>";
 
-        // Trik Tambahan: Menyertakan nomor gid lembar kerja dan penangkal riwayat cache browser (&t=)
+        // Tautan penarik data TSV dengan pelindung anti-cache waktu browser
         const url = `https://google.com{myPubId}/pub?gid=1472663075&single=true&output=tsv&t=${new Date().getTime()}`;
 
         try {
@@ -203,16 +203,18 @@
             if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            const baris = textData.split("\n");
+            // Memisah baris data secara aman
+            const baris = textData.split(\(/\r\)?\n/);
             let namaDitemukan = null;
 
-            // Scanning data dimulai dari baris indeks ke-2 (melewati judul dan merged cell ungu)
-            for (let i = 2; i < baris.length; i++) {
-                if (!baris[i]) continue;
+            // Scanning data dimulai tepat dari baris ke-2 (indeks 1) karena tidak ada merged-cell pembatas di Baris 1
+            for (let i = 1; i < baris.length; i++) {
+                if (!baris[i] || baris[i].trim() === "") continue;
                 
+                // Pisahkan per kolom dengan pembatas Tabular (\t)
                 const kolom = baris[i].split("\t");
                 
-                // Kolom B adalah indeks array ke-1 (NAMA LENGKAP)
+                // Di spreadsheet Anda, Kolom B (Indeks ke-1) adalah kolom NAMA LENGKAP
                 if (kolom && kolom[1]) {
                     const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
@@ -242,8 +244,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
-                <p>Server web sedang menyelaraskan data baru dari Google Sheets. Mohon tunggu 1-2 menit lalu muat ulang halaman web ini.</p>
+                <h3>⚠️ Sinkronisasi Google Sheets Terhambat</h3>
+                <p>Terjadi kendala pembacaan data. Pastikan status <strong>Publish to web</strong> di Google Sheets Anda tidak dimatikan.</p>
             `;
         }
     }
