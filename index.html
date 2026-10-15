@@ -11,10 +11,10 @@
         }
         
         body {
-            /* 1. IMPORT BACKGROUND GAMBAR BANNER */
+            /* IMPORT BACKGROUND GAMBAR BANNER */
             background-image: url('background-event.png'); 
             
-            /* 2. PENGATURAN STRUKTUR BACKGROUND */
+            /* PENGATURAN STRUKTUR BACKGROUND */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -191,9 +191,11 @@
 </div>
 
 <script>
-    // Konfigurasi Google Sheets Anda
-    const sheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- Ganti dengan ID Spreadsheet Google Form Anda
-    const sheetName = 'Form Responses 1'; 
+    // =========================================================================
+    // ⚠️ PENGATURAN DATA UTAMA (WAJIB DISESUAIKAN)
+    // =========================================================================
+    const sheetId = '1A2B3C4D5E6F7G8H9I0J'; // <-- Ganti dengan ID Spreadsheet Anda
+    const sheetName = 'Form Responses 1';      // <-- Sesuaikan dengan nama tab paling bawah di Google Sheets Anda
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -212,35 +214,46 @@
 
         try {
             const response = await fetch(url);
+            if (!response.ok) throw new Error("Gagal mengambil data dari Google Sheets");
+            
             const textData = await response.text();
             
+            // Konversi teks CSV ke format array baris & kolom
             const baris = textData.split("\n").map(row => {
-                return row.split(",").map(cell => cell.replace(/^"(.*)"\$/, '\$1'));
+                // Memisahkan koma dengan aman dan menghapus tanda kutip bawaan CSV
+                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
             });
 
             let dataDitemukan = null;
 
+            // Memindai baris data (Dimulai dari indeks ke-1 untuk melompati baris judul header)
             for (let i = 1; i < baris.length; i++) {
                 const kolom = baris[i];
-                // Asumsi pencarian pada Kolom Indeks 1 (Kolom B di Sheets)
-                if (kolom && kolom.toLowerCase().includes(input)) {
-                    dataDitemukan = {
-                        waktu: kolom,
-                        nama: kolom,
-                        info: kolom || "-" 
-                    };
-                    break; 
+                if (kolom && kolom.length > 0) {
+                    // Sistem menyatukan seluruh kata dalam satu baris untuk pencarian fleksibel
+                    const gabunganTeksBaris = kolom.join(" ").toLowerCase();
+                    
+                    if (gabunganTeksBaris.includes(input)) {
+                        // Jika kata kunci cocok, simpan data baris ini
+                        dataDitemukan = kolom;
+                        break; 
+                    }
                 }
             }
 
             if (dataDitemukan) {
+                // Menampilkan data yang ditemukan secara dinamis
                 boxHasil.className = "result terdaftar";
-                boxHasil.innerHTML = `
-                    <h3>🎉 Nama Terdaftar!</h3>
-                    <p><strong>Nama Lengkap:</strong> ${dataDitemukan.nama}</p>
-                    <p><strong>Waktu Masuk:</strong> ${dataDitemukan.waktu}</p>
-                    <p><strong>Status:</strong> Terverifikasi sebagai Peserta</p>
-                `;
+                
+                // Membuat ringkasan tampilan data dari kolom pertama hingga ketiga yang tersedia
+                let templateHasil = `<h3>🎉 Nama Terdaftar!</h3>`;
+                if (dataDitemukan[0]) templateHasil += `<p><strong>Data 1:</strong> ${dataDitemukan[0]}</p>`;
+                if (dataDitemukan[1]) templateHasil += `<p><strong>Data 2:</strong> ${dataDitemukan[1]}</p>`;
+                if (dataDitemukan[2]) templateHasil += `<p><strong>Data 3:</strong> ${dataDitemukan[2]}</p>`;
+                if (dataDitemukan[4]) templateHasil += `<p><strong>Domisili:</strong> ${dataDitemukan[4]}</p>`;
+                templateHasil += `<p><strong>Status:</strong> Terverifikasi sebagai Peserta</p>`;
+                
+                boxHasil.innerHTML = templateHasil;
             } else {
                 boxHasil.className = "result tidak-terdaftar";
                 boxHasil.innerHTML = `
@@ -254,15 +267,10 @@
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
                 <h3>⚠️ Terjadi Kesalahan</h3>
-                <p>Gagal menghubungi server database. Periksa izin akses file Google Sheets Anda.</p>
+                <p>Gagal menghubungi server database. Periksa kembali apakah:</p>
+                <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px;">
+                    <li>Akses Google Sheets Anda sudah diubah ke <strong>"Siapa saja yang memiliki link"</strong> (Jangan pilih Dibatasi).</li>
+                    <li>Status akses diatur sebagai <strong>Pengakses lihat-saja (Viewer)</strong>.</li>
+                    <li><code>sheetId</code> dan <code>sheetName</code> di kode HTML sudah benar-benar sesuai.</li>
+                </ul>
             `;
-        }
-    }
-    
-    document.getElementById("inputNama").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") { cariNama(); }
-    });
-</script>
-
-</body>
-</html>
