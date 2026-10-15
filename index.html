@@ -179,8 +179,8 @@
 </div>
 
 <script>
-    // ID share to web resmi Google Sheets Anda yang aktif
-    const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvISnimph2YJQ7QGsulvqI2NNIe0v9_Ku5lyJAQ2Ktt3dCol8PnIauwPgxXnMuE'; 
+    // URL Google Apps Script Web App resmi terbaru milik Anda
+    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxaswsrIcM8T2__OsHnYORdhTYdq8Cg6mcbLJTEUCHBGkK_fxFlr-wJ5uETfsCF6vEd/exec'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -195,33 +195,18 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Jalur akses data tabular resmi Google Sheets
-        const url = `https://google.com{myPubId}/pub?gid=1472663075&single=true&output=tsv&t=${new Date().getTime()}`;
-
         try {
-            const response = await fetch(url);
+            const response = await fetch(appsScriptUrl);
             if (!response.ok) throw new Error();
-            const textData = await response.text();
+            const listNama = await response.json();
             
-            // Penggunaan pemisah teks standar \n (Anti-Crash di semua browser)
-            const baris = textData.split('\n');
             let namaDitemukan = null;
 
-            // Memindai baris data (Mulai dari indeks 1 untuk melewati baris judul kolom pendaftaran)
-            for (let i = 1; i < baris.length; i++) {
-                if (!baris[i] || baris[i].trim() === "") continue;
-                
-                // Pisahkan kolom berbasis karakter tabulator (\t)
-                const kolom = baris[i].split('\t');
-                
-                // Kolom B adalah indeks array ke-1 (NAMA LENGKAP)
-                if (kolom && kolom[1]) {
-                    const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
-                    
-                    if (namaPeserta.toLowerCase().includes(input)) {
-                        namaDitemukan = namaPeserta;
-                        break;
-                    }
+            // Memindai kecocokan nama langsung dari array data JSON bersih Google Apps Script
+            for (let i = 0; i < listNama.length; i++) {
+                if (listNama[i] && listNama[i].toLowerCase().includes(input)) {
+                    namaDitemukan = listNama[i];
+                    break;
                 }
             }
 
@@ -236,7 +221,7 @@
                 boxHasil.className = "result tidak-terdaftar";
                 boxHasil.innerHTML = `
                     <h3>❌ Nama Tidak Ditemukan</h3>
-                    <p>Nama tidak ditemukan di sistem. Pastikan ejaan nama Anda sudah sama persis dengan saat mengisi formulir.</p>
+                    <p>Nama tidak terdata atau salah ejaan. Silakan periksa kembali nama lengkap yang Anda masukkan.</p>
                 `;
             }
 
@@ -244,13 +229,13 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
-                <p>Terjadi kesalahan sistem saat menghubungi server Google. Harap pastikan link publikasi web Anda masih aktif.</p>
+                <h3>⚠️ Koneksi Sinkronisasi Gagal</h3>
+                <p>Terjadi kendala saat mengambil data. Pastikan status hak akses Web App di Google Sheets Anda sudah disetel ke <strong>'Anyone'</strong> (Siapa saja).</p>
             `;
         }
     }
     
-    // Fitur klik tombol Enter di Keyboard
+    // Fitur klik tombol enter di keyboard
     document.getElementById("inputNama").addEventListener("keypress", function(event) {
         if (event.key === "Enter") { cariNama(); }
     });
