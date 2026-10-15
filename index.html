@@ -180,10 +180,9 @@
 
 <script>
     // =========================================================================
-    // ⚠️ MASUKKAN LINK GOOGLE SHEETS ANDA YANG LENGKAP DI BAWAH INI
+    // ⚠️ MASUKKAN ID SPREADSHEET ANDA DI BAWAH INI (AMBIL DARI URL SHEET ANDA)
     // =========================================================================
-    // Contoh pengisian: 'https://google.com'
-    const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0/edit?usp=sharing'; 
+    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- HANYA GANTI TEKS INI DENGAN ID SHEET ANDA
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -196,41 +195,37 @@
 
         boxHasil.style.display = "block";
         boxHasil.className = "result loading";
-        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memproses basis data pendaftaran.</p>";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memproses basis data pendaftaran secara real-time.</p>";
+
+        // Trik Universal Fetching menggunakan format Google Visualization CSV (Aman dari pembatasan CORS)
+        const url = `https://google.com{mySheetId}/gviz/tq?tqx=out:csv`;
 
         try {
-            // Ekstraksi otomatis ID Spreadsheet dari Link URL lengkap Anda
-            const matches = googleSheetUrl.match(/d\/([a-zA-Z0-9-_]+)/);
-            if (!matches) throw new Error("Format URL Google Sheets salah.");
-            const extractedId = matches[1];
-
-            // Menggunakan Endpoint TQ JSON publik tanpa memerlukan variabel nama tab halaman
-            const url = `https://google.com{extractedId}/gviz/tq?tqx=out:json`;
-
             const response = await fetch(url);
+            if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            // Konversi teks respon Google ke Objek JSON murni
-            const jsonData = JSON.parse(textData.substring(47, textData.length - 2));
-            const barisData = jsonData.table.rows;
-
+            // Memecah baris CSV secara aman
+            const baris = textData.split("\n");
             let namaDitemukan = null;
 
-            // Memindai baris data peserta
-            for (let i = 0; i < barisData.length; i++) {
-                const kolom = barisData[i].c;
-                if (!kolom) continue;
-
-                for (let j = 0; j < kolom.length; j++) {
-                    if (kolom[j] && kolom[j].v && kolom[j].v.toString().toLowerCase().includes(input)) {
-                        // Memastikan sel yang diambil adalah teks abjad nama, bukan deretan angka numerik (seperti nomor HP)
-                        if (isNaN(kolom[j].v)) {
-                            namaDitemukan = kolom[j].v;
-                            break;
-                        }
+            // Scanning data dimulai dari baris kedua (indeks 1)
+            for (let i = 1; i < baris.length; i++) {
+                if (!baris[i]) continue;
+                
+                // Pisahkan kolom dan bersihkan tanda kutip ganda otomatis dari format Google CSV
+                const kolom = baris[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*\()/).map(c => c.replace(/^"(.*)"\)/, '\$1').trim());
+                
+                // Cari kata kunci di sepanjang kolom data di baris ini
+                const gabunganTeksBaris = kolom.join(" ").toLowerCase();
+                if (gabunganTeksBaris.includes(input)) {
+                    // Ambil sel pertama yang berupa huruf alfabet abjad (bukan angka/nomor hp/email/waktu)
+                    const selNama = kolom.find(c => c.toLowerCase().includes(input) && isNaN(c) && !c.includes('@'));
+                    if (selNama) {
+                        namaDitemukan = selNama;
+                        break;
                     }
                 }
-                if (namaDitemukan) break;
             }
 
             if (namaDitemukan) {
@@ -238,13 +233,13 @@
                 boxHasil.innerHTML = `
                     <h3>🎉 Nama Terdaftar!</h3>
                     <p><strong>Nama Lengkap:</strong> ${namaDitemukan}</p>
-                    <p><strong>Status Kepesertaan:</strong> Terverifikasi ✅</p>
+                    <p><strong>Status Kepesertaan:</strong> Terverifikasi sebagai Peserta ✅</p>
                 `;
             } else {
                 boxHasil.className = "result tidak-terdaftar";
                 boxHasil.innerHTML = `
                     <h3>❌ Nama Tidak Ditemukan</h3>
-                    <p>Nama tidak ditemukan. Pastikan ejaan nama Anda sudah sama persis dengan yang diisi saat mendaftar.</p>
+                    <p>Nama tidak terdata atau salah ejaan. Silakan periksa kembali nama lengkap yang Anda masukkan.</p>
                 `;
             }
 
@@ -252,8 +247,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Terjadi Kesalahan Teknis</h3>
-                <p>Gagal memproses data. Silakan periksa kembali apakah tautan <code>googleSheetUrl</code> di file kode Anda sudah diisi dengan link spreadsheet Anda yang benar.</p>
+                <h3>⚠️ Koneksi Google Sheets Gagal</h3>
+                <p>Silakan pastikan kembali opsi <strong>"Anyone with the link" (Siapa saja yang memiliki link)</strong> di tombol Share Google Sheets Anda sudah aktif dan disimpan dengan benar.</p>
             `;
         }
     }
