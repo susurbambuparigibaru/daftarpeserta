@@ -179,10 +179,9 @@
 </div>
 
 <script>
-    // =========================================================================
-    // ⚠️ GANTI DENGAN ID GOOGLE SHEETS ANDA
-    // =========================================================================
-    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- Masukkan ID Sheet Anda di sini
+    // Konfigurasi otomatis berdasarkan data URL spreadsheet Anda
+    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; 
+    const sheetName = 'Form Responses 1';
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -197,14 +196,14 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memproses basis data pendaftaran secara real-time.</p>";
 
-        // Jalur khusus JSONp / Google Visualization API untuk membypass pemblokiran CORS oleh browser
-        const url = `https://google.com{mySheetId}/gviz/tq?tqx=out:json`;
+        // Jalur visualisasi JSONP publik Google API
+        const url = `https://google.com{mySheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
         try {
             const response = await fetch(url);
             const textData = await response.text();
             
-            // Mengubah response text Google yang terproteksi menjadi objek JSON bersih
+            // Konversi manipulasi teks menjadi Objek Javascript Array JSON
             const jsonText = textData.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
             if (!jsonText || !jsonText[1]) throw new Error("Format data tidak didukung");
             
@@ -213,27 +212,18 @@
 
             let namaDitemukan = null;
 
-            // Scanning data peserta di setiap baris dan kolom
+            // Scanning baris-per-baris tabel pendaftaran Anda
             for (let i = 0; i < barisData.length; i++) {
                 const kolom = barisData[i].c;
-                if (!kolom) continue;
-
-                // Cek isi tiap sel di baris ini
-                for (let j = 0; j < kolom.length; j++) {
-                    if (kolom[j] && kolom[j].v !== null && kolom[j].v !== undefined) {
-                        const nilaiSel = kolom[j].v.toString();
-                        
-                        // Jika kecocokan teks ditemukan
-                        if (nilaiSel.toLowerCase().includes(input)) {
-                            // Filter validasi: pastikan sel berisi Nama (bukan nomor HP, bukan email, bukan tanggal/waktu)
-                            if (isNaN(nilaiSel) && !nilaiSel.includes('@') && nilaiSel.length > 2 && !nilaiSel.includes('Date')) {
-                                namaDitemukan = nilaiSel;
-                                break;
-                            }
-                        }
+                // Kolom B adalah index ke-1 (NAMA LENGKAP)
+                if (kolom && kolom[1] && kolom[1].v) {
+                    const namaPeserta = kolom[1].v.toString();
+                    
+                    if (namaPeserta.toLowerCase().includes(input)) {
+                        namaDitemukan = namaPeserta;
+                        break;
                     }
                 }
-                if (namaDitemukan) break;
             }
 
             if (namaDitemukan) {
@@ -256,7 +246,7 @@
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
                 <h3>⚠️ Koneksi Basis Data Gagal</h3>
-                <p>Silakan pastikan kembali opsi <strong>"Anyone with the link" (Siapa saja yang memiliki link)</strong> di tombol Share Google Sheets Anda sudah aktif dengan status <strong>Viewer (Pengakses lihat-saja)</strong>.</p>
+                <p>Silakan pastikan kembali opsi <strong>"Anyone with the link"</strong> di tombol Share Google Sheets Anda sudah disimpan dengan benar.</p>
             `;
         }
     }
