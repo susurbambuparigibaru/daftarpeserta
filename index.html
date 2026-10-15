@@ -180,9 +180,9 @@
 
 <script>
     // =========================================================================
-    // ⚠️ MASUKKAN ID SPREADSHEET ANDA DI BAWAH INI (AMBIL DARI URL SHEET ANDA)
+    // ⚠️ GANTI DENGAN ID GOOGLE SHEETS ANDA
     // =========================================================================
-    const mySheetId = '1472663075'; // <-- HANYA GANTI TEKS INI DENGAN ID SHEET ANDA
+    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- Masukkan ID Sheet Anda di sini
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -197,35 +197,43 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memproses basis data pendaftaran secara real-time.</p>";
 
-        // Trik Universal Fetching menggunakan format Google Visualization CSV (Aman dari pembatasan CORS)
-        const url = `https://google.com{mySheetId}/gviz/tq?tqx=out:csv`;
+        // Jalur khusus JSONp / Google Visualization API untuk membypass pemblokiran CORS oleh browser
+        const url = `https://google.com{mySheetId}/gviz/tq?tqx=out:json`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            // Memecah baris CSV secara aman
-            const baris = textData.split("\n");
+            // Mengubah response text Google yang terproteksi menjadi objek JSON bersih
+            const jsonText = textData.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+            if (!jsonText || !jsonText[1]) throw new Error("Format data tidak didukung");
+            
+            const jsonData = JSON.parse(jsonText[1]);
+            const barisData = jsonData.table.rows;
+
             let namaDitemukan = null;
 
-            // Scanning data dimulai dari baris kedua (indeks 1)
-            for (let i = 1; i < baris.length; i++) {
-                if (!baris[i]) continue;
-                
-                // Pisahkan kolom dan bersihkan tanda kutip ganda otomatis dari format Google CSV
-                const kolom = baris[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*\()/).map(c => c.replace(/^"(.*)"\)/, '\$1').trim());
-                
-                // Cari kata kunci di sepanjang kolom data di baris ini
-                const gabunganTeksBaris = kolom.join(" ").toLowerCase();
-                if (gabunganTeksBaris.includes(input)) {
-                    // Ambil sel pertama yang berupa huruf alfabet abjad (bukan angka/nomor hp/email/waktu)
-                    const selNama = kolom.find(c => c.toLowerCase().includes(input) && isNaN(c) && !c.includes('@'));
-                    if (selNama) {
-                        namaDitemukan = selNama;
-                        break;
+            // Scanning data peserta di setiap baris dan kolom
+            for (let i = 0; i < barisData.length; i++) {
+                const kolom = barisData[i].c;
+                if (!kolom) continue;
+
+                // Cek isi tiap sel di baris ini
+                for (let j = 0; j < kolom.length; j++) {
+                    if (kolom[j] && kolom[j].v !== null && kolom[j].v !== undefined) {
+                        const nilaiSel = kolom[j].v.toString();
+                        
+                        // Jika kecocokan teks ditemukan
+                        if (nilaiSel.toLowerCase().includes(input)) {
+                            // Filter validasi: pastikan sel berisi Nama (bukan nomor HP, bukan email, bukan tanggal/waktu)
+                            if (isNaN(nilaiSel) && !nilaiSel.includes('@') && nilaiSel.length > 2 && !nilaiSel.includes('Date')) {
+                                namaDitemukan = nilaiSel;
+                                break;
+                            }
+                        }
                     }
                 }
+                if (namaDitemukan) break;
             }
 
             if (namaDitemukan) {
@@ -247,8 +255,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Koneksi Google Sheets Gagal</h3>
-                <p>Silakan pastikan kembali opsi <strong>"Anyone with the link" (Siapa saja yang memiliki link)</strong> di tombol Share Google Sheets Anda sudah aktif dan disimpan dengan benar.</p>
+                <h3>⚠️ Koneksi Basis Data Gagal</h3>
+                <p>Silakan pastikan kembali opsi <strong>"Anyone with the link" (Siapa saja yang memiliki link)</strong> di tombol Share Google Sheets Anda sudah aktif dengan status <strong>Viewer (Pengakses lihat-saja)</strong>.</p>
             `;
         }
     }
