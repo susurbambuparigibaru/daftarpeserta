@@ -179,8 +179,8 @@
 </div>
 
 <script>
-    // Konfigurasi ID Spreadsheet Anda yang sudah diverifikasi dari link
-    const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; 
+    // DI SINI KITA MENGGUNAKAN ID UTUH DARI LINK PUBLISH BARU ANDA
+    const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvlSnimph2YJQ7QGsuvqI2NNIeOv9_Ku5lyJAQ2Ktt3dCol8PnlauwPgxXnMuE'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -195,8 +195,8 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Jalur ekspor TSV publik menggunakan parameter pub?output=tsv
-        const url = `https://google.com{mySheetId}/pub?output=tsv`;
+        // Memanggil data TSV langsung dari server CDN Google dengan ID Publikasi Utama
+        const url = `https://google.com{myPubId}/pub?output=tsv`;
 
         try {
             const response = await fetch(url);
@@ -206,14 +206,14 @@
             const baris = textData.split("\n");
             let namaDitemukan = null;
 
-            // Memindai baris data (Mulai dari baris ke-3 / indeks 2 untuk melewati merged cell ungu dan judul kolom)
+            // Scanning baris data dimulai dari indeks ke-2 (melewati baris merged cell ungu dan baris judul kolom)
             for (let i = 2; i < baris.length; i++) {
                 if (!baris[i]) continue;
                 
-                // Memisahkan data per kolom menggunakan karakter Tab (\t)
+                // Pisahkan data menggunakan pemisah Tabular (\t) bawaan Google TSV
                 const kolom = baris[i].split("\t");
                 
-                // Pada spreadsheet Anda, Kolom B (indeks 1) adalah NAMA LENGKAP
+                // Pada lembar kerja Anda, Kolom B (Indeks Array ke-1) adalah NAMA LENGKAP
                 if (kolom && kolom[1]) {
                     const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
@@ -243,8 +243,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Akses Sinkronisasi Gagal</h3>
-                <p>Pastikan menu <strong>File > Share > Publish to web (Publikasikan ke web)</strong> di Google Sheets Anda sudah aktif agar sistem diizinkan membaca data.</p>
+                <h3>⚠️ Kegagalan Sinkronisasi Data</h3>
+                <p>Gagal mengunduh basis data publik Google. Pastikan status dokumen di menu File > Share > Publish to web tetap aktif.</p>
             `;
         }
     }
