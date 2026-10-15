@@ -179,8 +179,8 @@
 </div>
 
 <script>
-    // ID Publikasi Dokumen Terverifikasi Aktif
-    const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvlSnimph2YJQ7QGsuvqI2NNIeOv9_Ku5lyJAQ2Ktt3dCol8PnlauwPgxXnMuE'; 
+    // ID share to web resmi yang Anda kirimkan
+    const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvISnimph2YJQ7QGsulvqI2NNIe0v9_Ku5lyJAQ2Ktt3dCol8PnIauwPgxXnMuE'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -193,9 +193,9 @@
 
         boxHasil.style.display = "block";
         boxHasil.className = "result loading";
-        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang mencocokkan nama dengan basis data...</p>";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Tautan penarik data TSV dengan pelindung anti-cache waktu browser
+        // Tautan live sinkronisasi langsung ke tab data pendaftar Anda
         const url = `https://google.com{myPubId}/pub?gid=1472663075&single=true&output=tsv&t=${new Date().getTime()}`;
 
         try {
@@ -203,18 +203,18 @@
             if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            // Memisah baris data secara aman
+            // Memisah teks baris data
             const baris = textData.split(\(/\r\)?\n/);
             let namaDitemukan = null;
 
-            // Scanning data dimulai tepat dari baris ke-2 (indeks 1) karena tidak ada merged-cell pembatas di Baris 1
+            // Scanning data dimulai tepat dari baris ke-2 (indeks 1) melewati baris nama kolom pendaftaran
             for (let i = 1; i < baris.length; i++) {
                 if (!baris[i] || baris[i].trim() === "") continue;
                 
-                // Pisahkan per kolom dengan pembatas Tabular (\t)
+                // Pisahkan per kolom dengan pembatas Tabular (\t) bawaan Google Sheets
                 const kolom = baris[i].split("\t");
                 
-                // Di spreadsheet Anda, Kolom B (Indeks ke-1) adalah kolom NAMA LENGKAP
+                // Mengambil isi Kolom B (Indeks ke-1 di array) sebagai NAMA LENGKAP
                 if (kolom && kolom[1]) {
                     const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
@@ -244,8 +244,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Sinkronisasi Google Sheets Terhambat</h3>
-                <p>Terjadi kendala pembacaan data. Pastikan status <strong>Publish to web</strong> di Google Sheets Anda tidak dimatikan.</p>
+                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
+                <p>Server web sedang menyelaraskan tautan Google Sheets Anda. Mohon tunggu 1 menit lalu coba muat ulang halaman ini.</p>
             `;
         }
     }
