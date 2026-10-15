@@ -11,15 +11,11 @@
         }
         
         body {
-            /* IMPORT BACKGROUND GAMBAR BANNER */
             background-image: url('background-event.png'); 
-            
-            /* PENGATURAN STRUKTUR BACKGROUND */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            
             margin: 0;
             padding: 20px;
             display: flex;
@@ -29,7 +25,6 @@
             position: relative;
         }
 
-        /* Lapisan transparan gelap agar gambar tidak mendominasi teks */
         body::before {
             content: "";
             position: absolute;
@@ -38,7 +33,6 @@
             z-index: 1;
         }
 
-        /* KOTAK PENCARIAN DENGAN AKSEN GRADASI HIJAU BAMBU */
         .container {
             position: relative;
             z-index: 2;
@@ -53,13 +47,10 @@
             border: 2px solid rgba(165, 214, 167, 0.5);
         }
 
-        /* DEKORASI ORNAMEN DAUN / GARIS ATAS */
         .container::before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 8px;
             background: linear-gradient(90deg, #1b5e20, #4ade80, #facc15);
             border-top-left-radius: 18px;
@@ -67,7 +58,7 @@
         }
 
         h2 {
-            color: #1b5e20; /* Hijau Tua Khas Hutan/Bambu */
+            color: #1b5e20;
             margin-top: 10px;
             margin-bottom: 5px;
             font-size: 26px;
@@ -104,7 +95,6 @@
             box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.15);
         }
 
-        /* TOMBOL KUNING EMAS/ORANYE MENIRU TULISAN "SUSUR BAMBU" */
         button {
             width: 100%;
             padding: 15px;
@@ -190,10 +180,10 @@
 
 <script>
     // =========================================================================
-    // ⚠️ PENGATURAN DATA UTAMA (WAJIB DISESUAIKAN)
+    // ⚠️ SILAHKAN GANTI ID DI BAWAH INI DENGAN ID GOOGLE SHEETS ANDA KEMBALI
     // =========================================================================
-    const sheetId = '1472663075'; // <-- Ganti dengan ID Spreadsheet Anda
-    const sheetName = 'Form Responses 1';      // <-- Sesuaikan dengan nama tab paling bawah di Google Sheets Anda
+    const sheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; // <-- Ganti bagian ini dengan ID asli Anda
+    const sheetName = 'Form Responses 1'; // <-- Judul lembar kerja tab Anda sesuai gambar
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -208,43 +198,41 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang mencocokkan dengan basis data pendaftaran.</p>";
 
-        const url = `https://google.com{sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+        // MENGGUNAKAN METODE FORMAT JSON UNTUK MENGHINDARI ERROR PEMISAHAN KARAKTER CSV
+        const url = `https://google.com{sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Gagal mengambil data");
-            
             const textData = await response.text();
             
-            // Konversi CSV ke format array baris & kolom
-            const baris = textData.split("\n").map(row => {
-                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*\()/).map(cell => cell.replace(/^"(.*)"\)/, '\$1').trim());
-            });
+            // Pembersihan kode enkripsi proteksi Google JSON
+            const jsonData = JSON.parse(textData.substring(47, textData.length - 2));
+            const barisData = jsonData.table.rows;
 
-            let dataDitemukan = null;
+            let namaDitemukan = null;
 
-            // Memindai baris data
-            for (let i = 1; i < baris.length; i++) {
-                const kolom = baris[i];
-                if (kolom && kolom.length > 0) {
-                    // Sistem menyatukan data baris untuk dicocokkan
-                    const gabunganTeksBaris = kolom.join(" ").toLowerCase();
-                    
-                    if (gabunganTeksBaris.includes(input)) {
-                        // Jika nama cocok, cari teks nama asli di baris tersebut
-                        // Metode ini mendeteksi teks nama dari input pendaftar
-                        dataDitemukan = kolom.find(cell => cell.toLowerCase().includes(input));
-                        break; 
+            // Scanning data peserta
+            for (let i = 0; i < barisData.length; i++) {
+                const kolom = barisData[i].c;
+                
+                // Cari teks sel di sepanjang baris yang mengandung ketikan input user
+                for (let j = 0; j < kolom.length; j++) {
+                    if (kolom[j] && kolom[j].v && kolom[j].v.toString().toLowerCase().includes(input)) {
+                        // Jika ketemu, pastikan data yang diambil berupa teks alfabet (menghindari mengambil kecocokan no HP/Waktu)
+                        if (isNaN(kolom[j].v)) {
+                            namaDitemukan = kolom[j].v;
+                            break;
+                        }
                     }
                 }
+                if (namaDitemukan) break;
             }
 
-            if (dataDitemukan) {
-                // Menampilkan nama lengkap yang terdaftar saja
+            if (namaDitemukan) {
                 boxHasil.className = "result terdaftar";
                 boxHasil.innerHTML = `
                     <h3>🎉 Nama Terdaftar!</h3>
-                    <p><strong>Nama Lengkap:</strong> ${dataDitemukan}</p>
+                    <p><strong>Nama Lengkap:</strong> ${namaDitemukan}</p>
                     <p><strong>Status Kepesertaan:</strong> Terverifikasi ✅</p>
                 `;
             } else {
@@ -260,16 +248,11 @@
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
                 <h3>⚠️ Terjadi Kesalahan</h3>
-                <p>Gagal menghubungi server database. Periksa kembali apakah:</p>
-                <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px;">
-                    <li>Akses Google Sheets Anda sudah diubah ke <strong>"Siapa saja yang memiliki link"</strong>.</li>
-                    <li>Status akses diatur sebagai <strong>Pengakses lihat-saja (Viewer)</strong>.</li>
-                </ul>
+                <p>Gagal memproses data. Pastikan ID dan Nama Tab Google Sheets di file HTML sudah dimasukkan dengan benar.</p>
             `;
         }
     }
     
-    // Fitur Enter Keyboard
     document.getElementById("inputNama").addEventListener("keypress", function(event) {
         if (event.key === "Enter") { cariNama(); }
     });
