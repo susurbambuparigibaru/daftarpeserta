@@ -179,9 +179,8 @@
 </div>
 
 <script>
-    // Konfigurasi ID & nama sheet dari URL asli Anda
+    // Konfigurasi ID Dokumen Google Sheets Anda (Sudah Sesuai)
     const mySheetId = '1RCLvbZcFGz3MKIuljDDHv0ksgygtrKflBfF2v8cbfQ0'; 
-    const sheetName = 'Form Responses 1';
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -194,33 +193,35 @@
 
         boxHasil.style.display = "block";
         boxHasil.className = "result loading";
-        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memproses basis data pendaftaran secara real-time.</p>";
+        boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran...</p>";
 
-        // MENGGUNAKAN ENPOINT JALUR EKSPOR CSV PUBLIK YANG JAUH LEBIH STABIL & BEBAS BLOKIR CORS
-        const url = `https://google.com{mySheetId}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`;
+        // Jalur ekspor teks mentah (TSV) berbasis tabulator agar kebal dari koma di kolom alamat
+        const url = `https://google.com{mySheetId}/export?format=tsv`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Gagal mengunduh berkas");
+            if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            // Memecah baris teks CSV berdasarkan karakter enter ganti baris
             const baris = textData.split("\n");
             let namaDitemukan = null;
 
-            // Memindai data (Melewati baris judul indeks 0)
+            // Memindai baris data (Melewati baris judul indeks 0)
             for (let i = 1; i < baris.length; i++) {
                 if (!baris[i]) continue;
                 
-                // Memisahkan kolom dengan aman menggunakan pemisah koma standar CSV
-                const kolom = baris[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*\()/).map(c => c.replace(/^"(.*)"\)/, '\$1').trim());
+                // Pisahkan kolom menggunakan pembatas karakter tab (\t)
+                const kolom = baris[i].split("\t");
                 
-                // Berdasarkan sheet Anda: Kolom B (indeks 1) adalah NAMA LENGKAP
-                const namaLengkapPeserta = kolom[1]; 
-                
-                if (namaLengkapPeserta && namaLengkapPeserta.toLowerCase().includes(input)) {
-                    namaDitemukan = namaLengkapPeserta;
-                    break;
+                // KUNCI UTAMA: Hanya membaca Kolom B (Indeks ke-1 di sistem komputer) yang berisi NAMA LENGKAP
+                if (kolom && kolom[1]) {
+                    const namaPeserta = kolom[1].replace(/"/g, '').trim(); // Membersihkan sisa ornamen kutip teks CSV
+                    
+                    // Mencocokkan input pencarian peserta dengan data di kolom nama saja
+                    if (namaPeserta.toLowerCase().includes(input)) {
+                        namaDitemukan = namaPeserta;
+                        break;
+                    }
                 }
             }
 
@@ -243,8 +244,8 @@
             console.error(error);
             boxHasil.className = "result tidak-terdaftar";
             boxHasil.innerHTML = `
-                <h3>⚠️ Akses Sinkronisasi Gagal</h3>
-                <p>Terjadi kendala saat membaca sheet. Pastikan file Google Sheets Anda tidak sedang dalam kondisi terhapus atau dipindahkan jalurnya.</p>
+                <h3>⚠️ Kegagalan Pemrosesan Data</h3>
+                <p>Tidak dapat membaca data pendaftaran. Pastikan pengaturan <strong>Anyone with the link (Siapa saja yang memiliki link)</strong> di Google Sheets Anda tetap aktif.</p>
             `;
         }
     }
