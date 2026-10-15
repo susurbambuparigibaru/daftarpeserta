@@ -179,7 +179,7 @@
 </div>
 
 <script>
-    // Tautan ID share to web resmi Google Sheets Anda yang aktif
+    // ID share to web resmi Google Sheets Anda yang aktif
     const myPubId = '2PACX-1vR_A_ZG4YiJ0fJbEqvISnimph2YJQ7QGsulvqI2NNIe0v9_Ku5lyJAQ2Ktt3dCol8PnIauwPgxXnMuE'; 
 
     async function cariNama() {
@@ -195,7 +195,7 @@
         boxHasil.className = "result loading";
         boxHasil.innerHTML = "<h3>🔄 Mohon tunggu...</h3><p>Sedang memeriksa basis data pendaftaran secara real-time.</p>";
 
-        // Jalur panggil data tabular resmi Google Sheets
+        // Jalur akses data tabular resmi Google Sheets
         const url = `https://google.com{myPubId}/pub?gid=1472663075&single=true&output=tsv&t=${new Date().getTime()}`;
 
         try {
@@ -203,18 +203,18 @@
             if (!response.ok) throw new Error();
             const textData = await response.text();
             
-            // Perbaikan pemisah baris reguler (Regex baku tanpa crash)
-            const baris = textData.split(\(/\r\)?\n/);
+            // Penggunaan pemisah teks standar \n (Anti-Crash di semua browser)
+            const baris = textData.split('\n');
             let namaDitemukan = null;
 
-            // Memindai baris data (Mulai baris ke-2 / indeks 1 untuk melewati baris judul kolom)
+            // Memindai baris data (Mulai dari indeks 1 untuk melewati baris judul kolom pendaftaran)
             for (let i = 1; i < baris.length; i++) {
                 if (!baris[i] || baris[i].trim() === "") continue;
                 
                 // Pisahkan kolom berbasis karakter tabulator (\t)
-                const kolom = baris[i].split("\t");
+                const kolom = baris[i].split('\t');
                 
-                // Kolom B (indeks array 1) adalah NAMA LENGKAP pendaftar Anda
+                // Kolom B adalah indeks array ke-1 (NAMA LENGKAP)
                 if (kolom && kolom[1]) {
                     const namaPeserta = kolom[1].replace(/"/g, '').trim(); 
                     
@@ -236,7 +236,7 @@
                 boxHasil.className = "result tidak-terdaftar";
                 boxHasil.innerHTML = `
                     <h3>❌ Nama Tidak Ditemukan</h3>
-                    <p>Nama "${document.getElementById("inputNama").value}" tidak terdata atau salah ejaan. Silakan periksa kembali ketikan Anda.</p>
+                    <p>Nama tidak ditemukan di sistem. Pastikan ejaan nama Anda sudah sama persis dengan saat mengisi formulir.</p>
                 `;
             }
 
