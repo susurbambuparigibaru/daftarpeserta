@@ -45,13 +45,11 @@
             background: rgba(255, 255, 255, 0.96);
             padding: 35px 30px;
             border-radius: 20px;
-            /* Efek bayangan halus berwarna hijau tua transparan agar serasi dengan bambu */
             box-shadow: 0 12px 40px rgba(27, 94, 32, 0.3);
             width: 100%;
             max-width: 460px;
             text-align: center;
             backdrop-filter: blur(6px);
-            /* Garis pembatas tipis berwarna hijau daun */
             border: 2px solid rgba(165, 214, 167, 0.5);
         }
 
@@ -92,7 +90,7 @@
         input[type="text"] {
             width: 100%;
             padding: 14px 20px;
-            border: 2px solid #c8e6c9; /* Hijau muda pudar */
+            border: 2px solid #c8e6c9; 
             border-radius: 10px;
             font-size: 16px;
             outline: none;
@@ -110,8 +108,8 @@
         button {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #facc15, #eab308); /* Gradasi Kuning Emas */
-            color: #1e293b; /* Teks Gelap Kontras */
+            background: linear-gradient(135deg, #facc15, #eab308); 
+            color: #1e293b; 
             border: none;
             border-radius: 10px;
             font-size: 16px;
@@ -214,46 +212,41 @@
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Gagal mengambil data dari Google Sheets");
+            if (!response.ok) throw new Error("Gagal mengambil data");
             
             const textData = await response.text();
             
-            // Konversi teks CSV ke format array baris & kolom
+            // Konversi CSV ke format array baris & kolom
             const baris = textData.split("\n").map(row => {
-                // Memisahkan koma dengan aman dan menghapus tanda kutip bawaan CSV
-                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
+                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*\()/).map(cell => cell.replace(/^"(.*)"\)/, '\$1').trim());
             });
 
             let dataDitemukan = null;
 
-            // Memindai baris data (Dimulai dari indeks ke-1 untuk melompati baris judul header)
+            // Memindai baris data
             for (let i = 1; i < baris.length; i++) {
                 const kolom = baris[i];
                 if (kolom && kolom.length > 0) {
-                    // Sistem menyatukan seluruh kata dalam satu baris untuk pencarian fleksibel
+                    // Sistem menyatukan data baris untuk dicocokkan
                     const gabunganTeksBaris = kolom.join(" ").toLowerCase();
                     
                     if (gabunganTeksBaris.includes(input)) {
-                        // Jika kata kunci cocok, simpan data baris ini
-                        dataDitemukan = kolom;
+                        // Jika nama cocok, cari teks nama asli di baris tersebut
+                        // Metode ini mendeteksi teks nama dari input pendaftar
+                        dataDitemukan = kolom.find(cell => cell.toLowerCase().includes(input));
                         break; 
                     }
                 }
             }
 
             if (dataDitemukan) {
-                // Menampilkan data yang ditemukan secara dinamis
+                // Menampilkan nama lengkap yang terdaftar saja
                 boxHasil.className = "result terdaftar";
-                
-                // Membuat ringkasan tampilan data dari kolom pertama hingga ketiga yang tersedia
-                let templateHasil = `<h3>🎉 Nama Terdaftar!</h3>`;
-                if (dataDitemukan[0]) templateHasil += `<p><strong>Data 1:</strong> ${dataDitemukan[0]}</p>`;
-                if (dataDitemukan[1]) templateHasil += `<p><strong>Data 2:</strong> ${dataDitemukan[1]}</p>`;
-                if (dataDitemukan[2]) templateHasil += `<p><strong>Data 3:</strong> ${dataDitemukan[2]}</p>`;
-                if (dataDitemukan[4]) templateHasil += `<p><strong>Domisili:</strong> ${dataDitemukan[4]}</p>`;
-                templateHasil += `<p><strong>Status:</strong> Terverifikasi sebagai Peserta</p>`;
-                
-                boxHasil.innerHTML = templateHasil;
+                boxHasil.innerHTML = `
+                    <h3>🎉 Nama Terdaftar!</h3>
+                    <p><strong>Nama Lengkap:</strong> ${dataDitemukan}</p>
+                    <p><strong>Status Kepesertaan:</strong> Terverifikasi ✅</p>
+                `;
             } else {
                 boxHasil.className = "result tidak-terdaftar";
                 boxHasil.innerHTML = `
@@ -269,8 +262,18 @@
                 <h3>⚠️ Terjadi Kesalahan</h3>
                 <p>Gagal menghubungi server database. Periksa kembali apakah:</p>
                 <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px;">
-                    <li>Akses Google Sheets Anda sudah diubah ke <strong>"Siapa saja yang memiliki link"</strong> (Jangan pilih Dibatasi).</li>
+                    <li>Akses Google Sheets Anda sudah diubah ke <strong>"Siapa saja yang memiliki link"</strong>.</li>
                     <li>Status akses diatur sebagai <strong>Pengakses lihat-saja (Viewer)</strong>.</li>
-                    <li><code>sheetId</code> dan <code>sheetName</code> di kode HTML sudah benar-benar sesuai.</li>
                 </ul>
             `;
+        }
+    }
+    
+    // Fitur Enter Keyboard
+    document.getElementById("inputNama").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { cariNama(); }
+    });
+</script>
+
+</body>
+</html>
