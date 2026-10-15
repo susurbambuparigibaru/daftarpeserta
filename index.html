@@ -186,8 +186,8 @@
 </div>
 
 <script>
-    // URL Google Apps Script Web App resmi milik Anda
-    const appsScriptUrl = 'https://google.com'; 
+    // URL Google Apps Script Web App resmi terbaru milik Anda
+    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxaswsrIcM8T2__OsHnYORdhTYdq8Cg6mcbLJTEUCHBGkK_fxFlr-wJ5uETfsCF6vEd/exec'; 
 
     async function cariNama() {
         const input = document.getElementById("inputNama").value.trim().toLowerCase();
@@ -253,6 +253,7 @@
         }
     }
     
+    // Fitur klik tombol enter di keyboard
     document.getElementById("inputNama").addEventListener("keypress", function(event) {
         if (event.key === "Enter") { cariNama(); }
     });
