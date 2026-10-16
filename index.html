@@ -11,11 +11,18 @@
         }
         
         body {
+            /* MENGGUNAKAN WARNA DASAR HIJAU TUA YANG SENADA DENGAN BANNER AGAR TIDAK ADA AREA PUTIH */
+            background-color: #1b5e20; 
+            
+            /* IMPORT GAMBAR BANNER */
             background-image: url('background-event.png'); 
-            background-size: cover;
-            background-position: center;
+            
+            /* PENGATURAN AGAR BANNER PRESISI PROPORSIONAL TANPA TERPOTONG KIRI/KANAN ATAU ATAS/BAWAH */
+            background-size: contain;
+            background-position: top center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-attachment: scroll;
+            
             margin: 0;
             padding: 20px;
             display: flex;
@@ -25,26 +32,21 @@
             position: relative;
         }
 
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.25);
-            z-index: 1;
-        }
-
+        /* Kotak pencarian digeser sedikit ke bawah agar tidak menutupi tulisan utama "SUSUR BAMBU" pada banner laptop */
         .container {
             position: relative;
             z-index: 2;
             background: rgba(255, 255, 255, 0.96);
             padding: 35px 30px;
             border-radius: 20px;
-            box-shadow: 0 12px 40px rgba(27, 94, 32, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             width: 100%;
             max-width: 460px;
             text-align: center;
             backdrop-filter: blur(6px);
             border: 2px solid rgba(165, 214, 167, 0.5);
+            margin-top: 180px; /* Jarak aman dari tulisan judul banner atas laptop */
+            margin-bottom: 40px;
         }
 
         .container::before {
@@ -168,6 +170,19 @@
         
         .item-nama:last-child {
             border-bottom: none;
+        }
+
+        /* PENYESUAIAN MEDIA LAYAR OTOMATIS KHUSUS TAMPILAN HANDPHONE (RESPONSIF) */
+        @media (max-width: 768px) {
+            body {
+                background-size: 100% auto; /* Banner melebar penuh mengikuti layar HP secara proporsional */
+                align-items: flex-start; /* Mengatur susunan kotak agar mulai dari atas layar HP */
+                padding-top: 10px;
+            }
+            .container {
+                margin-top: 52vw; /* Jarak dorong kotak agar berada tepat di bawah area teks judul utama HP */
+                padding: 25px 20px;
+            }
         }
     </style>
 </head>
