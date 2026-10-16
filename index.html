@@ -11,17 +11,17 @@
         }
         
         body {
-            /* MENGGUNAKAN WARNA DASAR HIJAU TUA YANG SENADA DENGAN BANNER AGAR TIDAK ADA AREA PUTIH */
+            /* MENGGUNAKAN WARNA DASAR HIJAU TUA YANG SENADA DENGAN BANNER */
             background-color: #1b5e20; 
             
             /* IMPORT GAMBAR BANNER */
             background-image: url('background-event.png'); 
             
-            /* PENGATURAN AGAR BANNER PRESISI PROPORSIONAL TANPA TERPOTONG KIRI/KANAN ATAU ATAS/BAWAH */
-            background-size: contain;
-            background-position: top center;
+            /* PENGATURAN AGAR BANNER MEMENUHI LAYAR SECARA PENUH (FULL SCREEN) TANPA TERPOTONG */
+            background-size: cover;
+            background-position: center center;
             background-repeat: no-repeat;
-            background-attachment: scroll;
+            background-attachment: fixed;
             
             margin: 0;
             padding: 20px;
@@ -32,20 +32,20 @@
             position: relative;
         }
 
-        /* Kotak pencarian digeser sedikit ke bawah agar tidak menutupi tulisan utama "SUSUR BAMBU" pada banner laptop */
+        /* Kotak pencarian didesain mengapung secara presisi di tengah layar */
         .container {
             position: relative;
             z-index: 2;
             background: rgba(255, 255, 255, 0.96);
             padding: 35px 30px;
             border-radius: 20px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 460px;
             text-align: center;
             backdrop-filter: blur(6px);
             border: 2px solid rgba(165, 214, 167, 0.5);
-            margin-top: 180px; /* Jarak aman dari tulisan judul banner atas laptop */
+            margin-top: 100px; /* Jarak aman agar tulisan judul "SUSUR BAMBU" tetap terlihat jelas di laptop */
             margin-bottom: 40px;
         }
 
@@ -172,15 +172,16 @@
             border-bottom: none;
         }
 
-        /* PENYESUAIAN MEDIA LAYAR OTOMATIS KHUSUS TAMPILAN HANDPHONE (RESPONSIF) */
+        /* PENYESUAIAN MEDIA LAYAR OTOMATIS KHUSUS TAMPILAN HANDPHONE (RESPONSIF UTUH) */
         @media (max-width: 768px) {
             body {
-                background-size: 100% auto; /* Banner melebar penuh mengikuti layar HP secara proporsional */
+                background-position: top center;
+                background-attachment: scroll;
                 align-items: flex-start; /* Mengatur susunan kotak agar mulai dari atas layar HP */
                 padding-top: 10px;
             }
             .container {
-                margin-top: 52vw; /* Jarak dorong kotak agar berada tepat di bawah area teks judul utama HP */
+                margin-top: 50vw; /* Kotak otomatis turun ke bawah mengikuti rasio gambar HP */
                 padding: 25px 20px;
             }
         }
